@@ -2,7 +2,7 @@
 /*
 Plugin Name: HDs Remove Sale Price
 Plugin URI: https://www.gamecont.com
-Description: Input category and click remove all discount price in product by specify category.
+Description: Select category and click remove all discount price in product by specify category.
 Version: 1.5
 Author: Adth0n;
 Author URI: https://www.facebook.com/animatorwithyou
@@ -35,7 +35,7 @@ function hds_cleardis_form() { ?>
         <input type="hidden" name="submitted-clear" value="1" />
         <input type="submit" name="clear" value="<?php esc_attr_e('Clear') ?>" />
    </form>
-   <?php do_action('hds_cleardis_status', $_POST['product_cat'] ); ?>
+   <?php do_action('hds_cleardis_status', intval($_POST['product_cat']) ); ?>
    </div>
 <?php }
 
@@ -73,8 +73,7 @@ function hds_clear_once( $category ) {
             update_post_meta( $childs[1], '_regular_price', $prices[$i][1] );
             update_post_meta( $childs[1], '_sale_price', '' );
             wc_update_product_stock_status( $id, 'instock');
-            $status = wp_remove_object_terms( $id, $args['tax_query']['terms'], 'product_cat' );
-            echo $status;
+            wp_remove_object_terms( $id, $category, 'product_cat' );
             $product->sync( $id );
             $i++; 
 		endwhile;
