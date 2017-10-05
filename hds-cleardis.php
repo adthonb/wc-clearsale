@@ -1,13 +1,11 @@
 <?php 
 /*
 Plugin Name: HDs Remove Sale Price
-Plugin URI: https://www.hardwaredatastore.com
-Description: Click on button to remove all discount price in product by specify category.
-Version: 1.4
-Author: AdthonB
+Plugin URI: https://www.gamecont.com
+Description: Input category and click remove all discount price in product by specify category.
+Version: 1.5
+Author: Adth0n;
 Author URI: https://www.facebook.com/animatorwithyou
-
-Copyright 2016 AdthonB.
 */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -28,29 +26,35 @@ function hds_cleardis_page() {
 function hds_cleardis_form() { ?>
     <div id="respond">
     <form name="hds-cleardis" action="<?php the_permalink(); ?>" method="post">
-       <input type="hidden" name="submitted-clear" value="1">
-       <input type="submit" name="clear" value="<?php esc_attr_e('Clear') ?>" />
+        <?php 
+        $args = array(
+            'taxonomy'           => 'product_cat',
+            'name'               => 'product_cat',
+        );
+        wp_dropdown_categories( $args ); ?>
+        <input type="hidden" name="submitted-clear" value="1" />
+        <input type="submit" name="clear" value="<?php esc_attr_e('Clear') ?>" />
    </form>
-   <?php do_action('hds_cleardis_status'); ?>
+   <?php do_action('hds_cleardis_status', $_POST['product_cat'] ); ?>
    </div>
 <?php }
 
-if ( isset($_POST['submitted-clear']) ) {
-    add_action('hds_cleardis_status', 'hds_clear_once' );
+if ( isset( $_POST['submitted-clear'] ) ) {
+    add_action('hds_cleardis_status', 'hds_clear_once', 10, 1 );
 }
 
 /* remove sale price all product in category summer-sale-2016 */
-function hds_clear_once() {
+function hds_clear_once( $category ) {
 	$args = array(
 		'post_type' => 'product',
 		'tax_query' => array(
 			array(
 				'taxonomy' => 'product_cat',
 				'field' => 'term_id',
-				'terms' => '105'
+				'terms' => $category
 			),
 		),
-	);
+    );
 	$all_products = new WP_Query( $args );
 	if ( $all_products->have_posts() ) :
         $i = 1;
@@ -59,14 +63,8 @@ function hds_clear_once() {
             echo $i . ' - ' . get_the_title() . ' Updated !<br/>';
             $product = new WC_Product_Variable( $id );
             $childs = $product->get_children( true );
-            echo '<pre>';
-            print_r($childs);
-            echo '</pre>';
             $prices[$i][] = $product->get_variation_regular_price();
             $prices[$i][] = $product->get_variation_regular_price( 'max' );
-            echo '<pre>Price: ';
-            print_r($prices[$i]);
-            echo '</pre>';
 
             update_post_meta( $childs[0], '_price', $prices[$i][0] );
             update_post_meta( $childs[0], '_regular_price', $prices[$i][0] );
